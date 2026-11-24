@@ -1,0 +1,82 @@
+name: CI - Playwright UI Automation
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxfixes6 libxrandr2 libgbm1 libasound2
+
+      - name: Install Python dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Install Playwright browsers
+        run: |
+          python -m playwright install ${{ matrix.browser }}
+          python -m playwright install-deps ${{ matrix.browser }}
+
+      - name: Start Flask application
+        run: |
+          python app/main.py > /tmp/flask.log 2>&1 &
+          echo $! > /tmp/flask.pid
+          sleep 3
+          curl -s http://localhost:5000/ > /dev/null && echo "Flask is ready" || (cat /tmp/flask.log && exit 1)
+
+      - name: Run Playwright tests
+        run: |
+          pytest tests/ --browser=${{ matrix.browser }} --headless=true -v --html=tests/reports/pytest-report-${{ matrix.browser }}.html --alluredir=tests/reports/allure-results-${{ matrix.browser }} --self-contained-html
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-report-${{ matrix.browser }}
+          path: tests/reports/pytest-report-${{ matrix.browser }}.html
+
+      - name: Upload Allure results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results-${{ matrix.browser }}
+          path: tests/reports/allure-results-${{ matrix.browser }}
+
+      - name: Upload screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots-${{ matrix.browser }}
+          path: tests/reports/screenshots/
+
+      - name: Upload videos
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: videos-${{ matrix.browser }}
+          path: tests/reports/videos/
+
+      - name: Stop Flask application
+        if: always()
+        run: |
+          if [ -f /tmp/flask.pid ]; then kill $(cat /tmp/flask.pid) 2>/dev/null || true; fi

@@ -1,0 +1,39 @@
+version: "3.8"
+
+services:
+  shop-ease-app:
+    build: .
+    container_name: shop-ease-app
+    ports:
+      - "5000:5000"
+    environment:
+      - SECRET_KEY=dev-secret-key
+      - FLASK_ENV=development
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - shop-ease-network
+
+  playwright-tests:
+    build: .
+    container_name: playwright-tests
+    depends_on:
+      shop-ease-app:
+        condition: service_healthy
+    environment:
+      - BASE_URL=http://shop-ease-app:5000
+      - BROWSER=chromium
+    volumes:
+      - ./tests/reports:/app/tests/reports
+      - ./allure-results:/app/allure-results
+    networks:
+      - shop-ease-network
+    command: >
+      sh -c "sleep 5 && pytest tests/ -v --alluredir=allure-results"
+
+networks:
+  shop-ease-network:
+    driver: bridge

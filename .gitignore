@@ -1,0 +1,57 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# pytest
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Allure
+allure-results/
+allure-report/
+
+# Test reports
+tests/reports/*.html
+tests/reports/screenshots/
+tests/reports/videos/
+tests/reports/traces/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+
+# Flask
+instance/
+.webassets-cache
+
+# Docker
+.dockerignore
+
+# Logs
+*.log
+flask.log
