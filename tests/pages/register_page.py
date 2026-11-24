@@ -76,5 +76,6 @@ class RegisterPage(BasePage):
 
     def assert_duplicate_email_error(self) -> None:
         """Assert duplicate email error is shown."""
+        self.page.wait_for_load_state("networkidle")
         error = self.get_error_message() or self.get_flash_message()
         assert error, "Expected error message for duplicate email registration"

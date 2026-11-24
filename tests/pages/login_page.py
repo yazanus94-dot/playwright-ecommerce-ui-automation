@@ -66,5 +66,6 @@ class LoginPage(BasePage):
 
     def assert_invalid_credentials(self) -> None:
         """Assert invalid credentials error is shown."""
+        self.page.wait_for_load_state("networkidle")
         error = self.get_error_message() or self.get_flash_message()
         assert error, "Expected error message for invalid credentials"
