@@ -46,7 +46,7 @@ jobs:
 
       - name: Run Playwright tests
         run: |
-          pytest tests/ --browser=${{ matrix.browser }} --headless=true -v --html=tests/reports/pytest-report-${{ matrix.browser }}.html --alluredir=tests/reports/allure-results-${{ matrix.browser }} --self-contained-html
+          pytest tests/ --browser=${{ matrix.browser }} -v --html=tests/reports/pytest-report-${{ matrix.browser }}.html --alluredir=tests/reports/allure-results-${{ matrix.browser }} --self-contained-html
 
       - name: Upload test report
         if: always()
